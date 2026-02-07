@@ -5,17 +5,16 @@ from PyInstaller.building.build_main import Analysis, PYZ, EXE
 
 block_cipher = None
 
-# IMPORTANT:
-# PyInstaller executes the .spec with the current working directory set to the spec's folder.
-# So we anchor paths off the spec file location to reliably find repo-root files.
-SPEC_DIR = os.path.abspath(os.path.dirname(__file__))
+# PyInstaller executes this spec with the working directory set to the spec file's folder (build/).
+# In some environments, __file__ is not defined for the spec exec() context, so we use cwd.
+SPEC_DIR = os.path.abspath(os.getcwd())              # .../repo/build
 PROJECT_DIR = os.path.abspath(os.path.join(SPEC_DIR, ".."))
 ASSETS_DIR = os.path.join(PROJECT_DIR, "assets")
 
 APP_NAME = "PearsonQuotePro"
 ICON_PATH = os.path.join(ASSETS_DIR, "PearsonP.ico")
 
-# Bundle the entire assets folder into the EXE (so Excel + images are always present)
+# Bundle the entire assets folder into the EXE (Excel + images)
 datas = []
 if os.path.isdir(ASSETS_DIR):
     datas.append((ASSETS_DIR, "assets"))
