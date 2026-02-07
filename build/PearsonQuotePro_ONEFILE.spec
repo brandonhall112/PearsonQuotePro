@@ -5,12 +5,10 @@ from PyInstaller.building.build_main import Analysis, PYZ, EXE
 
 block_cipher = None
 
-# Robust project root discovery:
-# GitHub Actions / PyInstaller may execute this spec with cwd at repo root OR at build/.
-# We search upward from cwd to find main.py (repo root marker).
+# Robust project root discovery (works in GitHub Actions + local)
 cwd = os.path.abspath(os.getcwd())
 
-def find_project_dir(start: str, max_up: int = 4) -> str:
+def find_project_dir(start: str, max_up: int = 6) -> str:
     cur = start
     for _ in range(max_up + 1):
         if os.path.isfile(os.path.join(cur, "main.py")):
@@ -19,7 +17,6 @@ def find_project_dir(start: str, max_up: int = 4) -> str:
         if parent == cur:
             break
         cur = parent
-    # Fallback: assume spec is in build/ and project is parent
     return os.path.abspath(os.path.join(start, ".."))
 
 PROJECT_DIR = find_project_dir(cwd)
@@ -28,17 +25,23 @@ ASSETS_DIR = os.path.join(PROJECT_DIR, "assets")
 APP_NAME = "PearsonQuotePro"
 ICON_PATH = os.path.join(ASSETS_DIR, "PearsonP.ico")
 
-# Bundle the entire assets folder into the EXE (Excel + images)
+# Bundle assets in two locations:
+# 1) /assets (Quote Pro expects this)
+# 2) /legacy_pcp/assets (PCP code expects this path when frozen)
 datas = []
 if os.path.isdir(ASSETS_DIR):
     datas.append((ASSETS_DIR, "assets"))
+    datas.append((ASSETS_DIR, os.path.join("legacy_pcp", "assets")))
 
 a = Analysis(
     [os.path.join(PROJECT_DIR, "main.py")],
     pathex=[PROJECT_DIR],
     binaries=[],
     datas=datas,
-    hiddenimports=["PySide6.QtSvg", "PySide6.QtXml"],
+    hiddenimports=[
+        "PySide6.QtSvg",
+        "PySide6.QtXml",
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
