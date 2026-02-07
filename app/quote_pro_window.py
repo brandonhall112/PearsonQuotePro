@@ -14,112 +14,90 @@ APP_TITLE = "Pearson Quote Pro"
 ASSETS_DIR = Path(__file__).resolve().parents[1] / "assets"
 
 
-def build_pcp_stylesheet() -> str:
-    # This mirrors PCP v1.1 "Pearson-ish palette" styling so all tabs share look/feel.
+def qp_stylesheet() -> str:
+    """
+    IMPORTANT: Scope styles to Quote Pro widgets ONLY.
+    Do NOT use a global QWidget selector, otherwise we override PCP's CTO styling.
+    """
     blue = "#0B2E4B"
     gold = "#F05A28"
     neutral = "#64748B"
     red = "#B91C1C"
 
-    css = """
-    QWidget { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #0F172A; }
-    QFrame#header { background: __BLUE__; border-bottom: 3px solid __GOLD__; }
-    QLabel#title { color: white; font-size: 16pt; font-weight: 700; }
-    QLabel#subtitle { color: #E2E8F0; font-size: 9pt; }
-    QPushButton {
-        background: __GOLD__;
+    return f"""
+    /* Scope to Quote Pro root only */
+    QWidget#qpRoot {{ font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #0F172A; }}
+
+    QFrame#qpPanel {{
+        background: #FFFFFF;
+        border: 1px solid #E6E8EB;
+        border-radius: 12px;
+        padding: 12px;
+    }}
+    QLabel#qpPanelTitle {{ font-size: 12pt; font-weight: 700; color: {blue}; }}
+    QLabel#qpHint {{ color: {neutral}; }}
+
+    QPushButton#qpBtn {{
+        background: {gold};
         color: white;
-        padding: 10px 14px;
+        padding: 8px 12px;
         border-radius: 10px;
         font-weight: 700;
-    }
-    QPushButton:hover { opacity: 0.9; }
-    QPushButton:disabled { background: #CBD5E1; color: #475569; }
-    QComboBox {
-        padding: 8px 10px;
+        min-width: 110px;
+    }}
+    QPushButton#qpBtn:disabled {{ background: #CBD5E1; color: #475569; }}
+
+    QComboBox#qpQuoteType {{
+        padding: 6px 10px;
         border: 1px solid #CBD5E1;
         border-radius: 10px;
         background: white;
         min-width: 220px;
-    }
-    QTextEdit {
+    }}
+
+    QTextEdit#qpSow {{
         border: 1px solid #CBD5E1;
         border-radius: 10px;
         padding: 8px;
         background: white;
-    }
-    QTableWidget {
+    }}
+
+    QTableWidget#qpTMTable {{
         border: 1px solid #E6E8EB;
         border-radius: 12px;
         background: white;
         gridline-color: #E6E8EB;
-    }
-    QHeaderView::section {
+    }}
+    QHeaderView::section {{
         background: #F1F5F9;
         border: 0px;
         padding: 8px;
         font-weight: 700;
         color: #0F172A;
-    }
-    QFrame#panel {
-        background: #FFFFFF;
-        border: 1px solid #E6E8EB;
-        border-radius: 12px;
-        padding: 12px;
-    }
-    QLabel#panelTitle { font-size: 12pt; font-weight: 700; color: __BLUE__; }
-    QLabel#hint { color: __NEUTRAL__; }
-    QLabel#error { color: __RED__; font-weight: 700; }
+    }}
+
+    QLabel#qpError {{ color: {red}; font-weight: 700; }}
     """
-    return css.replace("__BLUE__", blue).replace("__GOLD__", gold).replace("__NEUTRAL__", neutral).replace("__RED__", red)
 
 
 class QuoteProWindow(QMainWindow):
+    """
+    Goal:
+    - CTO tab should look exactly like PCP: do NOT override PCP styling.
+    - Avoid "double title bars": remove Quote Pro header frame, move controls into the tab bar corner.
+    """
     def __init__(self):
         super().__init__()
         self.setWindowTitle(APP_TITLE)
         self.resize(1400, 900)
-        self.setStyleSheet(build_pcp_stylesheet())
 
-        # Load Excel (shared across quote types)
         self.excel_path = self._resolve_excel()
         self.data = ExcelData(self.excel_path)
 
-        # Header
-        header = QFrame()
-        header.setObjectName("header")
-        hl = QHBoxLayout(header)
-        hl.setContentsMargins(16, 12, 16, 12)
-
-        title_box = QVBoxLayout()
-        title = QLabel(APP_TITLE)
-        title.setObjectName("title")
-        subtitle = QLabel(f"Config: {self.excel_path.name}")
-        subtitle.setObjectName("subtitle")
-        title_box.addWidget(title)
-        title_box.addWidget(subtitle)
-
-        hl.addLayout(title_box)
-        hl.addStretch(1)
-
-        self.quote_type = QComboBox()
-        self.quote_type.addItem("Commissioning (CTO)", "CTO")
-        self.quote_type.addItem("Complex Install (ETO)", "ETO")
-        self.quote_type.addItem("Reactive (Break/Fix)", "REACTIVE")
-        self.quote_type.currentIndexChanged.connect(self._on_quote_type_changed)
-
-        self.btn_calc = QPushButton("Calculate")
-        self.btn_calc.clicked.connect(self.calculate_current)
-
-        self.btn_print = QPushButton("Print / Preview")
-        self.btn_print.clicked.connect(self.print_current)
-
-        hl.addWidget(self.quote_type)
-        hl.addWidget(self.btn_calc)
-        hl.addWidget(self.btn_print)
-
         # Tabs
         self.tabs = QTabWidget()
+        self.tabs.setDocumentMode(True)
+
         self.tab_common = self._build_common_tab()
         self.tab_cto = self._build_cto_tab()
         self.tab_eto = self._build_tm_tab(kind="ETO")
@@ -130,26 +108,57 @@ class QuoteProWindow(QMainWindow):
         self.tabs.addTab(self.tab_eto, "ETO")
         self.tabs.addTab(self.tab_reactive, "Reactive")
 
-        # Main layout
-        root = QWidget()
-        vl = QVBoxLayout(root)
-        vl.setContentsMargins(12, 12, 12, 12)
-        vl.setSpacing(10)
-        vl.addWidget(header)
-        vl.addWidget(self.tabs)
+        # Controls live in the tab bar corner to avoid wasting vertical space
+        self._corner = QWidget()
+        corner_l = QHBoxLayout(self._corner)
+        corner_l.setContentsMargins(6, 4, 6, 4)
+        corner_l.setSpacing(8)
 
+        self.quote_type = QComboBox()
+        self.quote_type.setObjectName("qpQuoteType")
+        self.quote_type.addItem("Commissioning (CTO)", "CTO")
+        self.quote_type.addItem("Complex Install (ETO)", "ETO")
+        self.quote_type.addItem("Reactive (Break/Fix)", "REACTIVE")
+        self.quote_type.currentIndexChanged.connect(self._on_quote_type_changed)
+
+        self.btn_calc = QPushButton("Calculate")
+        self.btn_calc.setObjectName("qpBtn")
+        self.btn_calc.clicked.connect(self.calculate_current)
+
+        self.btn_print = QPushButton("Print / Preview")
+        self.btn_print.setObjectName("qpBtn")
+        self.btn_print.clicked.connect(self.print_current)
+
+        # Small status label (kept compact)
+        self.lbl_cfg = QLabel(f"Config: {self.excel_path.name}")
+        self.lbl_cfg.setObjectName("qpHint")
+
+        corner_l.addWidget(self.quote_type)
+        corner_l.addWidget(self.btn_calc)
+        corner_l.addWidget(self.btn_print)
+        corner_l.addWidget(self.lbl_cfg)
+
+        self.tabs.setCornerWidget(self._corner, Qt.TopRightCorner)
+
+        # Root widget
+        root = QWidget()
+        root_layout = QVBoxLayout(root)
+        root_layout.setContentsMargins(10, 10, 10, 10)
+        root_layout.addWidget(self.tabs)
         self.setCentralWidget(root)
 
+        # Apply Quote Pro styling ONLY to Quote Pro widgets (not CTO/PCP)
+        root.setObjectName("qpRoot")
+        root.setStyleSheet(qp_stylesheet())
+
+        # Start on CTO
         self._on_quote_type_changed()
 
     def _resolve_excel(self) -> Path:
-        # Use PCP resolver but point it at Quote Pro assets directory
-        # PCP resolve_excel_path looks relative to its module file; we want our assets.
         expected = "Tech days and quote rates.xlsx"
         p = ASSETS_DIR / expected
         if p.exists():
             return p
-        # fallback to PCP behavior
         rp = resolve_excel_path(expected)
         if rp is None:
             raise FileNotFoundError(f"Could not find {expected} in assets.")
@@ -157,18 +166,20 @@ class QuoteProWindow(QMainWindow):
 
     def _build_common_tab(self) -> QWidget:
         w = QWidget()
+        w.setObjectName("qpRoot")  # for scoped styling on this tab
         layout = QVBoxLayout(w)
         layout.setContentsMargins(12, 12, 12, 12)
+
         panel = QFrame()
-        panel.setObjectName("panel")
+        panel.setObjectName("qpPanel")
         pl = QVBoxLayout(panel)
 
         t = QLabel("Common Info (used for all quote types)")
-        t.setObjectName("panelTitle")
+        t.setObjectName("qpPanelTitle")
         pl.addWidget(t)
 
         hint = QLabel("This first pass keeps Common lightweight. We’ll wire these fields into CTO + T&M outputs next increment.")
-        hint.setObjectName("hint")
+        hint.setObjectName("qpHint")
         hint.setWordWrap(True)
         pl.addWidget(hint)
 
@@ -177,16 +188,19 @@ class QuoteProWindow(QMainWindow):
         return w
 
     def _build_cto_tab(self) -> QWidget:
-        # Embed PCP MainWindow content without modifying PCP logic.
+        """
+        CTO should look/act like PCP. We embed PCP's central widget.
+        We intentionally do NOT apply Quote Pro scoped styling to this tab.
+        """
         tab = QWidget()
         l = QVBoxLayout(tab)
         l.setContentsMargins(0, 0, 0, 0)
 
         self._pcp = PCPMainWindow()
-        # Reuse the already-loaded Excel to avoid double prompts. Replace PCP data with ours.
+        # Reuse the already-loaded Excel config
         self._pcp.data = self.data
 
-        central = self._pcp.takeCentralWidget()  # QWidget
+        central = self._pcp.takeCentralWidget()
         central.setParent(tab)
         l.addWidget(central)
 
@@ -194,32 +208,33 @@ class QuoteProWindow(QMainWindow):
 
     def _build_tm_tab(self, kind: str, sow_required: bool = False) -> QWidget:
         tab = QWidget()
+        tab.setObjectName("qpRoot")  # scoped styles apply here
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(10)
 
         panel = QFrame()
-        panel.setObjectName("panel")
+        panel.setObjectName("qpPanel")
         pl = QVBoxLayout(panel)
+
         title = QLabel("Time & Material")
-        title.setObjectName("panelTitle")
+        title.setObjectName("qpPanelTitle")
         pl.addWidget(title)
 
         hint = QLabel("Enter days by resource type. Rates come from the shared workbook (Service Rates).")
-        hint.setObjectName("hint")
+        hint.setObjectName("qpHint")
         hint.setWordWrap(True)
         pl.addWidget(hint)
 
         # T&M grid
         tbl = QTableWidget(2, 4)
+        tbl.setObjectName("qpTMTable")
         tbl.setHorizontalHeaderLabels(["Resource", "Days", "Hours/Day", "Rate Key (from workbook)"])
         tbl.verticalHeader().setVisible(False)
         tbl.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         tbl.setFixedHeight(120)
 
-        # defaults
         hours_per_day = 8 if kind == "ETO" else 10
-        # Rate keys used by PCP ExcelData: these are descriptions in Service Rates sheet
         default_rate_tech = "Tech. Regular Time"
         default_rate_eng = "Eng. Regular Time"
 
@@ -234,58 +249,61 @@ class QuoteProWindow(QMainWindow):
 
         pl.addWidget(tbl)
 
-        # SOW
-        sow = QTextEdit()
-        sow.setPlaceholderText("Scope of Work (prints above the line item table) ...")
-        sow.setFixedHeight(180)
-
         sow_label = QLabel("Scope of Work (SOW)")
-        sow_label.setObjectName("panelTitle")
+        sow_label.setObjectName("qpPanelTitle")
         sow_label.setStyleSheet("font-size:11pt;")
         pl.addWidget(sow_label)
+
+        sow = QTextEdit()
+        sow.setObjectName("qpSow")
+        sow.setPlaceholderText("Scope of Work (prints above the line item table) ...")
+        sow.setFixedHeight(180)
         pl.addWidget(sow)
 
         err = QLabel("")
-        err.setObjectName("error")
+        err.setObjectName("qpError")
         err.setWordWrap(True)
         pl.addWidget(err)
 
         layout.addWidget(panel)
         layout.addStretch(1)
 
-        # store references
         if kind == "ETO":
-            self._eto_tbl = tbl
-            self._eto_sow = sow
-            self._eto_err = err
+            self._eto_tbl, self._eto_sow, self._eto_err = tbl, sow, err
         else:
-            self._rx_tbl = tbl
-            self._rx_sow = sow
-            self._rx_err = err
+            self._rx_tbl, self._rx_sow, self._rx_err = tbl, sow, err
             self._rx_sow_required = sow_required
 
         return tab
 
     def _on_quote_type_changed(self):
         qt = self.quote_type.currentData()
+
+        # In CTO mode, our Calculate/Print buttons are redundant (PCP has its own).
+        # Keep them enabled anyway if you want quick access; but we can disable for less confusion.
         if qt == "CTO":
+            self.btn_calc.setEnabled(False)
+            self.btn_print.setEnabled(False)
             self.tabs.setCurrentWidget(self.tab_cto)
         elif qt == "ETO":
+            self.btn_calc.setEnabled(True)
+            self.btn_print.setEnabled(True)
             self.tabs.setCurrentWidget(self.tab_eto)
         else:
+            self.btn_calc.setEnabled(True)
+            self.btn_print.setEnabled(True)
             self.tabs.setCurrentWidget(self.tab_reactive)
 
     def calculate_current(self):
         qt = self.quote_type.currentData()
         if qt == "CTO":
-            # PCP computes inside its UI. Trigger its recalc for safety.
+            # Disabled in UI; kept for completeness.
             try:
                 self._pcp.recalc()
             except Exception:
                 pass
             return
 
-        # Validate and compute T&M totals; store a last_result dict for printing.
         if qt == "ETO":
             tbl, sow, err = self._eto_tbl, self._eto_sow, self._eto_err
         else:
@@ -333,16 +351,15 @@ class QuoteProWindow(QMainWindow):
 
         total = sum(x["cost"] for x in lines)
         self._last_tm = {"quote_type": qt, "sow": sow_text, "lines": lines, "total": total}
-
         QMessageBox.information(self, "Calculated", f"T&M Total: ${total:,.2f}")
 
     def print_current(self):
         qt = self.quote_type.currentData()
         if qt == "CTO":
+            # Disabled in UI; kept for completeness.
             self._pcp.print_quote_preview()
             return
 
-        # Must calculate first
         if not hasattr(self, "_last_tm"):
             self.calculate_current()
             if not hasattr(self, "_last_tm"):
