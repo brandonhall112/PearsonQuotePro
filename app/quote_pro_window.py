@@ -11,7 +11,7 @@ class QuoteProWindow(QMainWindow):
     """
     Baseline:
     - CTO + ETO: identical PCP
-    - Reactive: identical PCP look/feel, but Machine Configuration inputs are repurposed for Reactive scheduling inputs
+    - Reactive: identical PCP look/feel, with Machine Configuration repurposed to Resources
     """
     def __init__(self):
         super().__init__()
