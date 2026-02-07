@@ -5,10 +5,24 @@ from PyInstaller.building.build_main import Analysis, PYZ, EXE
 
 block_cipher = None
 
-# PyInstaller executes this spec with the working directory set to the spec file's folder (build/).
-# In some environments, __file__ is not defined for the spec exec() context, so we use cwd.
-SPEC_DIR = os.path.abspath(os.getcwd())              # .../repo/build
-PROJECT_DIR = os.path.abspath(os.path.join(SPEC_DIR, ".."))
+# Robust project root discovery:
+# GitHub Actions / PyInstaller may execute this spec with cwd at repo root OR at build/.
+# We search upward from cwd to find main.py (repo root marker).
+cwd = os.path.abspath(os.getcwd())
+
+def find_project_dir(start: str, max_up: int = 4) -> str:
+    cur = start
+    for _ in range(max_up + 1):
+        if os.path.isfile(os.path.join(cur, "main.py")):
+            return cur
+        parent = os.path.abspath(os.path.join(cur, ".."))
+        if parent == cur:
+            break
+        cur = parent
+    # Fallback: assume spec is in build/ and project is parent
+    return os.path.abspath(os.path.join(start, ".."))
+
+PROJECT_DIR = find_project_dir(cwd)
 ASSETS_DIR = os.path.join(PROJECT_DIR, "assets")
 
 APP_NAME = "PearsonQuotePro"
