@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QVBoxLayout
 
 from legacy_pcp.pcp_v1_1 import MainWindow as PCPMainWindow
+from app.cto_pcp import CTOMainWindow
 from app.reactive_pcp import ReactiveMainWindow
 
 
@@ -21,7 +22,7 @@ class QuoteProWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.setDocumentMode(True)
 
-        self._pcp_cto = PCPMainWindow()
+        self._pcp_cto = CTOMainWindow()
         self._pcp_eto = PCPMainWindow()
         self._pcp_rx = ReactiveMainWindow()
 
