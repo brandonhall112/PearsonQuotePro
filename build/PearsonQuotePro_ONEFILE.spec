@@ -2,13 +2,21 @@
 
 from pathlib import Path
 
-SPEC_DIR = Path(__file__).resolve().parent
+SPEC_FILE = Path(globals().get('__file__', 'build/PearsonQuotePro_ONEFILE.spec')).resolve()
+SPEC_DIR = SPEC_FILE.parent
 PROJECT_ROOT = SPEC_DIR.parent
 MAIN_SCRIPT = PROJECT_ROOT / 'main.py'
 
+if not MAIN_SCRIPT.exists():
+    # Fallback for environments that evaluate spec from a different base path.
+    MAIN_SCRIPT = Path.cwd() / 'main.py'
+
+if not MAIN_SCRIPT.exists():
+    raise FileNotFoundError(f'main.py not found for build: {MAIN_SCRIPT}')
+
 a = Analysis(
     [str(MAIN_SCRIPT)],
-    pathex=[str(PROJECT_ROOT)],
+    pathex=[str(PROJECT_ROOT), str(Path.cwd())],
     binaries=[],
     datas=[],
     hiddenimports=[],
