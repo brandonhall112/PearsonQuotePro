@@ -1,12 +1,14 @@
-"""Application entrypoint for Pearson Quote Pro."""
+import sys
+from PySide6.QtWidgets import QApplication
+from app.quote_pro_window import QuoteProWindow
 
-from app.multi_mode_window import MultiModeWindow
 
-
-def main() -> None:
-    app = MultiModeWindow()
-    app.mainloop()
+def main() -> int:
+    app = QApplication(sys.argv)
+    w = QuoteProWindow()
+    w.show()
+    return app.exec()
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

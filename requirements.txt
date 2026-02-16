@@ -1,1 +1,3 @@
-# Runtime dependencies for Pearson Quote Pro.
+PySide6
+numpy
+openpyxl
