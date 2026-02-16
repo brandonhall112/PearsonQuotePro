@@ -49,7 +49,7 @@ class MultiModeWindow(tk.Tk):
         host.pack(fill="both", expand=True)
 
         for mode in self.MODES:
-            mode_window = PCPMainWindow(host, mode_name=mode)
+            mode_window = PCPMainWindow(host)
             mode_window.place(relx=0, rely=0, relwidth=1, relheight=1)
             self._mode_windows[mode] = mode_window
 

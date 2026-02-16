@@ -6,7 +6,7 @@ import tkinter as tk
 
 
 class PCPMainWindow(tk.Frame):
-    """A self-contained PCP mode workspace."""
+    """A self-contained PCP workspace."""
 
     def __init__(self, parent: tk.Misc, mode_name: str = "CTO") -> None:
         super().__init__(parent, bg="#f2f3f5")
@@ -20,7 +20,7 @@ class PCPMainWindow(tk.Frame):
 
         title = tk.Label(
             header,
-            text=f"CommissionPro • {self.mode_name}",
+            text="CommissionPro",
             bg="#1e2a38",
             fg="white",
             font=("Segoe UI", 12, "bold"),
@@ -34,7 +34,7 @@ class PCPMainWindow(tk.Frame):
 
         tk.Label(
             body,
-            text=f"{self.mode_name} workspace",
+            text="Workspace",
             bg="#f2f3f5",
             fg="#1e2a38",
             font=("Segoe UI", 11, "bold"),
@@ -44,8 +44,7 @@ class PCPMainWindow(tk.Frame):
         tk.Label(
             body,
             text=(
-                "Independent PCPMainWindow instance loaded "
-                "for this mode."
+                "Independent PCPMainWindow instance loaded."
             ),
             bg="#f2f3f5",
             fg="#4b5563",
