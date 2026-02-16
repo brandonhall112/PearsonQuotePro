@@ -1,9 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from pathlib import Path
+
+SPEC_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SPEC_DIR.parent
+MAIN_SCRIPT = PROJECT_ROOT / 'main.py'
 
 a = Analysis(
-    ['main.py'],
-    pathex=[],
+    [str(MAIN_SCRIPT)],
+    pathex=[str(PROJECT_ROOT)],
     binaries=[],
     datas=[],
     hiddenimports=[],
