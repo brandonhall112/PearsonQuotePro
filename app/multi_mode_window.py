@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import tkinter as tk
 
-from legacy_pcp.pcp_v1_1 import PCPMainWindow
+from app.pcp_factory import get_pcp_main_window_class
 
 
 class MultiModeWindow(tk.Tk):
     """Single app window with top mode buttons and stacked PCP workspaces."""
 
-    MODES = ("CTO", "ETO", "Reactive")
+    MODES = ("CTO", "ETO", "Rective")
 
     def __init__(self) -> None:
         super().__init__()
@@ -19,7 +19,7 @@ class MultiModeWindow(tk.Tk):
         self.configure(bg="#d7dce2")
 
         self._mode_buttons: dict[str, tk.Button] = {}
-        self._mode_windows: dict[str, PCPMainWindow] = {}
+        self._mode_windows: dict[str, tk.Widget] = {}
 
         self._build_ui()
         self.show_mode("CTO")
@@ -48,8 +48,9 @@ class MultiModeWindow(tk.Tk):
         host = tk.Frame(self, bg="#d7dce2")
         host.pack(fill="both", expand=True)
 
+        pcp_main_window_class = get_pcp_main_window_class()
         for mode in self.MODES:
-            mode_window = PCPMainWindow(host)
+            mode_window = pcp_main_window_class(host)
             mode_window.place(relx=0, rely=0, relwidth=1, relheight=1)
             self._mode_windows[mode] = mode_window
 
@@ -57,9 +58,7 @@ class MultiModeWindow(tk.Tk):
         if mode not in self._mode_windows:
             return
 
-        for mode_name, mode_window in self._mode_windows.items():
-            if mode_name == mode:
-                mode_window.lift()
+        self._mode_windows[mode].lift()
 
         for mode_name, button in self._mode_buttons.items():
             if mode_name == mode:
