@@ -1,19 +1,14 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QVBoxLayout
 
 from legacy_pcp.pcp_v1_1 import MainWindow as PCPMainWindow
-from app.cto_pcp import CTOMainWindow
-from app.reactive_pcp import ReactiveMainWindow
 
 
 APP_TITLE = "Pearson Quote Pro"
 
 
 class QuoteProWindow(QMainWindow):
-    """
-    Baseline:
-    - CTO + ETO: identical PCP
-    - Reactive: identical PCP look/feel, with Machine Configuration repurposed to Resources
-    """
+    """Host three identical PCP windows for CTO, ETO, and Reactive tabs."""
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle(APP_TITLE)
@@ -22,9 +17,9 @@ class QuoteProWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.setDocumentMode(True)
 
-        self._pcp_cto = CTOMainWindow()
+        self._pcp_cto = PCPMainWindow()
         self._pcp_eto = PCPMainWindow()
-        self._pcp_rx = ReactiveMainWindow()
+        self._pcp_rx = PCPMainWindow()
 
         self.tabs.addTab(self._embed(self._pcp_cto), "CTO")
         self.tabs.addTab(self._embed(self._pcp_eto), "ETO")
