@@ -41,6 +41,8 @@ a = Analysis(
     hiddenimports=[
         "PySide6.QtSvg",
         "PySide6.QtXml",
+        "app.quote_pro_window",
+        "app.pcp_factory",
     ],
     hookspath=[],
     hooksconfig={},

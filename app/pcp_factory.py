@@ -1,4 +1,7 @@
+<<<<<<< codex/show-git-remote-urls-3hsi8o
+=======
 <<<<<<< codex/show-git-remote-urls-arbjl7
+>>>>>>> main
 from __future__ import annotations
 
 import importlib.util
@@ -92,6 +95,8 @@ def create_pcp_main_window():
             f"{module_file} loaded but did not expose PCPMainWindow/MainWindow class."
         )
     return pcp_cls()
+<<<<<<< codex/show-git-remote-urls-3hsi8o
+=======
 =======
 """Factory for loading the CommissionPro PCPMainWindow class."""
 
@@ -137,4 +142,5 @@ def get_pcp_main_window_class() -> Type:
     from legacy_pcp.pcp_v1_1 import PCPMainWindow
 
     return PCPMainWindow
+>>>>>>> main
 >>>>>>> main
