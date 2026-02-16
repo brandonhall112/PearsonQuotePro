@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 
-from legacy_pcp.pcp_v1_1 import MainWindow as PCPMainWindow
+from app.pcp_factory import create_pcp_main_window
 
 
 APP_TITLE = "Pearson Quote Pro"
@@ -17,9 +17,9 @@ class QuoteProWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.setDocumentMode(True)
 
-        self._pcp_cto = PCPMainWindow()
-        self._pcp_eto = PCPMainWindow()
-        self._pcp_rx = PCPMainWindow()
+        self._pcp_cto = create_pcp_main_window()
+        self._pcp_eto = create_pcp_main_window()
+        self._pcp_rx = create_pcp_main_window()
 
         self.tabs.addTab(self._pcp_cto, "CTO")
         self.tabs.addTab(self._pcp_eto, "ETO")
