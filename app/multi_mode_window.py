@@ -10,7 +10,7 @@ from app.pcp_factory import get_pcp_main_window_class
 class MultiModeWindow(tk.Tk):
     """Single app window with top mode buttons and stacked PCP workspaces."""
 
-    MODES = ("CTO", "ETO", "Ractive")
+    MODES = ("CTO", "ETO", "Rective")
 
     def __init__(self) -> None:
         super().__init__()
