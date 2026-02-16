@@ -1,3 +1,4 @@
+        main
 from __future__ import annotations
 
 import importlib.util
@@ -91,3 +92,5 @@ def create_pcp_main_window():
             f"{module_file} loaded but did not expose PCPMainWindow/MainWindow class."
         )
     return pcp_cls()
+        main
+        main
