@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 
-from app.pcp_factory import create_pcp_main_window
+from .pcp_factory import create_pcp_main_window
 
 
 APP_TITLE = "Pearson Quote Pro"
