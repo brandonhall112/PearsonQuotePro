@@ -1,11 +1,11 @@
 import sys
 from PySide6.QtWidgets import QApplication
-from app.quote_pro_window import QuoteProWindow
+from app.multi_mode_window import MultiModeWindow
 
 
 def main() -> int:
     app = QApplication(sys.argv)
-    w = QuoteProWindow()
+    w = MultiModeWindow()
     w.show()
     return app.exec()
 
