@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QVBoxLayout
+from PySide6.QtWidgets import QMainWindow, QTabWidget
 
 from legacy_pcp.pcp_v1_1 import MainWindow as PCPMainWindow
 
@@ -21,22 +21,8 @@ class QuoteProWindow(QMainWindow):
         self._pcp_eto = PCPMainWindow()
         self._pcp_rx = PCPMainWindow()
 
-        self.tabs.addTab(self._embed(self._pcp_cto), "CTO")
-        self.tabs.addTab(self._embed(self._pcp_eto), "ETO")
-        self.tabs.addTab(self._embed(self._pcp_rx), "Reactive")
+        self.tabs.addTab(self._pcp_cto, "CTO")
+        self.tabs.addTab(self._pcp_eto, "ETO")
+        self.tabs.addTab(self._pcp_rx, "Reactive")
 
-        root = QWidget()
-        layout = QVBoxLayout(root)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.tabs)
-        self.setCentralWidget(root)
-
-    @staticmethod
-    def _embed(pcp_window) -> QWidget:
-        w = pcp_window.takeCentralWidget()
-        tab = QWidget()
-        l = QVBoxLayout(tab)
-        l.setContentsMargins(0, 0, 0, 0)
-        w.setParent(tab)
-        l.addWidget(w)
-        return tab
+        self.setCentralWidget(self.tabs)
