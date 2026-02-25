@@ -44,6 +44,7 @@ a = Analysis(
         "app",
         "app.__init__",
         "app.quote_pro_window",
+        "app.pcp_factory",
     ],
     hookspath=[],
     hooksconfig={},

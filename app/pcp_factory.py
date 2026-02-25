@@ -1,6 +1,6 @@
-        main
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import os
 import re
@@ -41,9 +41,8 @@ def _version_key(path: Path) -> tuple[int, int]:
     return (major, minor)
 
 
-def _find_latest_pcp_module_file() -> tuple[Path, Path]:
+def _find_latest_pcp_module_file() -> Path:
     errors: list[str] = []
-
     for root in _candidate_roots():
         legacy_dir = root / "legacy_pcp"
         if not legacy_dir.exists():
@@ -57,8 +56,7 @@ def _find_latest_pcp_module_file() -> tuple[Path, Path]:
             errors.append(f"- {legacy_dir}: no pcp_v*.py files found")
             continue
 
-        module_file = sorted(candidates, key=_version_key, reverse=True)[0]
-        return root, module_file
+        return sorted(candidates, key=_version_key, reverse=True)[0]
 
     details = "\n".join(errors) if errors else "- no candidate roots available"
     raise RuntimeError(
@@ -69,7 +67,6 @@ def _find_latest_pcp_module_file() -> tuple[Path, Path]:
 
 
 def _load_module_from_file(module_path: Path):
-    import hashlib
     digest = hashlib.sha1(str(module_path).encode("utf-8")).hexdigest()[:12]
     unique_name = f"commissionpro_runtime_{module_path.stem}_{digest}"
     spec = importlib.util.spec_from_file_location(unique_name, str(module_path))
@@ -83,14 +80,11 @@ def _load_module_from_file(module_path: Path):
 
 
 def create_pcp_main_window():
-    _, module_file = _find_latest_pcp_module_file()
+    module_file = _find_latest_pcp_module_file()
     module = _load_module_from_file(module_file)
-
     pcp_cls = getattr(module, "PCPMainWindow", None) or getattr(module, "MainWindow", None)
     if pcp_cls is None:
         raise RuntimeError(
             f"{module_file} loaded but did not expose PCPMainWindow/MainWindow class."
         )
     return pcp_cls()
-        main
-        main
